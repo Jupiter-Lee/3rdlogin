@@ -8,6 +8,7 @@ const MongoStore = require('connect-mongo')(session);
 const flash = require('express-flash');
 const mongoose = require('mongoose');
 const passport = require('passport');
+const expressValidator = require('express-validator');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
 
@@ -45,13 +46,14 @@ mongoose.connection.on('error', (err) => {
 });
 
 // view engine setup
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 3030);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(expressValidator());
 
 app.use(session({
   resave: true,
@@ -74,13 +76,13 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   // After successful login, redirect back to the intended page
   if (!req.user &&
-      req.path !== '/login' &&
-      req.path !== '/signup' &&
-      !req.path.match(/^\/auth/) &&
-      !req.path.match(/\./)) {
+    req.path !== '/login' &&
+    req.path !== '/signup' &&
+    !req.path.match(/^\/auth/) &&
+    !req.path.match(/\./)) {
     req.session.returnTo = req.path;
   } else if (req.user &&
-      req.path == '/account') {
+    req.path == '/account') {
     req.session.returnTo = req.path;
   }
   next();
@@ -89,7 +91,12 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }))
 
 app.get('/', homeController.index);
 app.get('/login', userController.getLogin);
-
+app.get('/logout', userController.logout);
+app.get('/signup', userController.getSignup);
+app.post('/signup', userController.postSignup);
+app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
+app.post('/account/profile', passportConfig.isAuthenticated, userController.postUpdateProfile);
+app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
 
 // app.use('/', index);
 // app.use('/users', users);
@@ -98,7 +105,6 @@ app.get('/auth/github', passport.authenticate('github'));
 app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/login' }), (req, res) => {
   res.redirect(req.session.returnTo || '/');
 });
-
 
 /**
  * Start Express server.
