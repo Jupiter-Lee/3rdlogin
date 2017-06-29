@@ -1,0 +1,11 @@
+extends ../layout
+
+block content
+  .page-header
+    h3 发表文章页
+  form.form-horizontal(action='/post', method='POST')
+    .form-group
+      .col-sm-7
+        input.form-control(type='title', name='title', id='title' placeholder='标题', required)
+        textarea
+

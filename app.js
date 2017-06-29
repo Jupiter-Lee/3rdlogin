@@ -25,7 +25,7 @@ dotenv.load({ path: '.env.example' });
  */
 const homeController = require('./controllers/home');
 const userController = require('./controllers/user');
-
+const articleController = require('./controllers/article');
 
 /**
  * API keys and Passport configuration.
@@ -94,12 +94,11 @@ app.get('/login', userController.getLogin);
 app.get('/logout', userController.logout);
 app.get('/signup', userController.getSignup);
 app.post('/signup', userController.postSignup);
+app.get('/post',articleController.index);
+// app.post('/post',articleController.postArticle);
 app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
 app.post('/account/profile', passportConfig.isAuthenticated, userController.postUpdateProfile);
 app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
-
-// app.use('/', index);
-// app.use('/users', users);
 
 app.get('/auth/github', passport.authenticate('github'));
 app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/login' }), (req, res) => {
