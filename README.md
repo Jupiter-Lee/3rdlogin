@@ -29,5 +29,5 @@
 
 有任何意见或建议都欢迎提 issue，或者直接提给 [@Jupiter-Lee](https://github.com/Jupiter-Lee)
 
-## 加入我们(FCC杭州站QQ群)
+## 关注FCC杭州站，一起技术成长！
 ![FCCHZ-QQ](./public/image/fcchzqq.jpg)
