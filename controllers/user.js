@@ -1,26 +1,29 @@
 const User = require('../models/User');
+const passport = require('passport');
 
 /**
  * GET /signup
  * Signup page.
+ * 登录页面
  */
 exports.getSignup = (req, res) => {
   if (req.user) {
     return res.redirect('/');
   }
   res.render('account/signup', {
-    title: 'Create Account'
+    title: '注册账户'
   });
 };
 
 /**
  * POST /signup
  * Create a new local account.
+ * 注册新的账户
  */
 exports.postSignup = (req, res, next) => {
-  req.assert('email', 'Email is not valid').isEmail();
-  req.assert('password', 'Password must be at least 4 characters long').len(4);
-  req.assert('confirmPassword', 'Passwords do not match').equals(req.body.password);
+  req.assert('email', 'Email 无效').isEmail();
+  req.assert('password', 'Password 不能少于4位').len(4);
+  req.assert('confirmPassword', 'Passwords 不匹配').equals(req.body.password);
   req.sanitize('email').normalizeEmail({ remove_dots: false });
 
   const errors = req.validationErrors();
@@ -38,7 +41,7 @@ exports.postSignup = (req, res, next) => {
   User.findOne({ email: req.body.email }, (err, existingUser) => {
     if (err) { return next(err); }
     if (existingUser) {
-      req.flash('errors', { msg: 'Account with that email address already exists.' });
+      req.flash('errors', { msg: '该邮箱地址已经存在！' });
       return res.redirect('/signup');
     }
     user.save((err) => {
@@ -56,6 +59,7 @@ exports.postSignup = (req, res, next) => {
 /**
  * GET /login
  * Login page.
+ * 登录页面
  */
 exports.getLogin = (req, res) => {
   if (req.user) {
@@ -67,8 +71,40 @@ exports.getLogin = (req, res) => {
 };
 
 /**
+ * POST /login
+ * Sign in using email and password.
+ * 通过email和密码登录
+ */
+exports.postLogin = (req, res, next) => {
+  req.assert('email', 'Email 无效').isEmail();
+  req.assert('password', 'Password 不能为空！').notEmpty();
+  req.sanitize('email').normalizeEmail({ remove_dots: false });
+
+  const errors = req.validationErrors();
+
+  if (errors) {
+    req.flash('errors', errors);
+    return res.redirect('/login');
+  }
+
+  passport.authenticate('local', (err, user, info) => {
+    if (err) { return next(err); }
+    if (!user) {
+      req.flash('errors', info);
+      return res.redirect('/login');
+    }
+    req.logIn(user, (err) => {
+      if (err) { return next(err); }
+      req.flash('success', { msg: '恭喜! 你已经成功登录' });
+      res.redirect(req.session.returnTo || '/');
+    });
+  })(req, res, next);
+};
+
+/**
  * GET /logout
  * Log out.
+ * 登出
  */
 exports.logout = (req, res) => {
   req.logout();
@@ -78,16 +114,18 @@ exports.logout = (req, res) => {
 /**
  * GET /account
  * Profile page.
+ * 个人信息页面
  */
 exports.getAccount = (req, res) => {
   res.render('account/profile', {
-    title: 'Account Management'
+    title: '账户管理'
   });
 };
 
 /**
  * POST /account/profile
  * Update profile information.
+ * 更新用户信息
  */
 exports.postUpdateProfile = (req, res, next) => {
   req.assert('email', 'Please enter a valid email address.').isEmail();
@@ -110,12 +148,12 @@ exports.postUpdateProfile = (req, res, next) => {
     user.save((err) => {
       if (err) {
         if (err.code === 11000) {
-          req.flash('errors', { msg: 'The email address you have entered is already associated with an account.' });
+          req.flash('errors', { msg: '该邮箱地址已经与其他账号关联' });
           return res.redirect('/account');
         }
         return next(err);
       }
-      req.flash('success', { msg: 'Profile information has been updated.' });
+      req.flash('success', { msg: '个人信息已经修改' });
       res.redirect('/account');
     });
   });
@@ -124,12 +162,13 @@ exports.postUpdateProfile = (req, res, next) => {
 /**
  * POST /account/delete
  * Delete user account.
+ * 删除账户
  */
 exports.postDeleteAccount = (req, res, next) => {
   User.remove({ _id: req.user.id }, (err) => {
     if (err) { return next(err); }
     req.logout();
-    req.flash('info', { msg: 'Your account has been deleted.' });
+    req.flash('info', { msg: '你的账号已经删除' });
     res.redirect('/');
   });
 };

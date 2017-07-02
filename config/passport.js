@@ -1,4 +1,5 @@
 const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
 const GitHubStrategy = require('passport-github').Strategy;
 
 const User = require('../models/User');
@@ -13,9 +14,30 @@ passport.deserializeUser((id, done) => {
   });
 });
 
+/**
+ * Sign in using Email and Password.
+ * 通过Email和Password登录
+ */
+passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
+  User.findOne({ email: email.toLowerCase() }, (err, user) => {
+    if (err) { return done(err); }
+    if (!user) {
+      return done(null, false, { msg: `Email ${email} not found.` });
+    }
+    user.comparePassword(password, (err, isMatch) => {
+      if (err) { return done(err); }
+      if (isMatch) {
+        return done(null, user);
+      }
+      return done(null, false, { msg: '无效的账号或者密码' });
+    });
+  });
+}));
+
 
 /**
  * Sign in with GitHub.
+ * 通过GitHub登录
  */
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_ID,

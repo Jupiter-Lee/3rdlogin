@@ -2,7 +2,7 @@ extends ../layout
 
 block content
   .page-header
-    h3 Sign up
+    h3 注册账户
   form.form-horizontal(id='signup-form', method='POST')
     input(type='hidden', name='_csrf', value=_csrf)
     .form-group
@@ -14,11 +14,11 @@ block content
       .col-sm-7
         input.form-control(type='password', name='password', id='password', placeholder='Password', required)
     .form-group
-      label.col-sm-3.control-label(for='confirmPassword') Confirm Password
+      label.col-sm-3.control-label(for='confirmPassword') Comfirm Password
       .col-sm-7
-        input.form-control(type='password', name='confirmPassword', id='confirmPassword', placeholder='Confirm Password', required)
+        input.form-control(type='password', name='confirmPassword', id='confirmPassword', placeholder='Comfirm Password', required)
     .form-group
       .col-sm-offset-3.col-sm-7
         button.btn.btn-success(type='submit')
           i.fa.fa-user-plus
-          | Signup
+          | 提交

@@ -12,11 +12,8 @@ const expressValidator = require('express-validator');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
 
-// const index = require('./routes/index');
-// const users = require('./routes/users');
-
 /**
- * Load environment constiables from .env file, where API keys and passwords are configured.
+ * 从.env.example文件当中载入环境诸如API和passwords等环境参数
  */
 dotenv.load({ path: '.env.example' });
 
@@ -28,7 +25,8 @@ const userController = require('./controllers/user');
 const articleController = require('./controllers/article');
 
 /**
- * API keys and Passport configuration.
+ * API keys and Passport configuration. 
+ * API以及Passport配置
  */
 const passportConfig = require('./config/passport');
 
@@ -36,6 +34,7 @@ const app = express();
 
 /**
  * Connect to MongoDB.
+ * 连接MongoDB
  */
 mongoose.Promise = global.Promise;
 mongoose.connect(process.env.MONGODB_URI || process.env.MONGOLAB_URI);
@@ -75,6 +74,7 @@ app.use((req, res, next) => {
 });
 app.use((req, res, next) => {
   // After successful login, redirect back to the intended page
+  // 成功登录之后，重定向到目标页面
   if (!req.user &&
     req.path !== '/login' &&
     req.path !== '/signup' &&
@@ -91,6 +91,7 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }))
 
 app.get('/', homeController.index);
 app.get('/login', userController.getLogin);
+app.post('/login', userController.postLogin);
 app.get('/logout', userController.logout);
 app.get('/signup', userController.getSignup);
 app.post('/signup', userController.postSignup);
@@ -107,6 +108,7 @@ app.get('/auth/github/callback', passport.authenticate('github', { failureRedire
 
 /**
  * Start Express server.
+ * 开启Express服务器
  */
 app.listen(app.get('port'), () => {
   console.log('%s App is running at http://localhost:%d in %s mode', chalk.green('✓'), app.get('port'), app.get('env')); 
