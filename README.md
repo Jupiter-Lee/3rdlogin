@@ -15,8 +15,9 @@
 1. 文章的发布、更新、查询
 2. 注册用户的统一管理
 3. 权限分配
-4. 前后端分离(Vue.js、Angular.js、React.js实践)
-...
+4. 用户密码重置
+5. 前后端分离(Vue.js、Angular.js、React.js实践)
+</br>...(欢迎补充)
 
 ## 安装部署
 
@@ -29,5 +30,5 @@
 
 有任何意见或建议都欢迎提 issue，或者直接提给 [@Jupiter-Lee](https://github.com/Jupiter-Lee)
 
-## 关注FCC杭州站，一起技术成长！
+## 关注FCC杭州站公众号，一起技术成长！
 ![FCCHZ-QQ](./public/image/fcchzqq.jpg)
