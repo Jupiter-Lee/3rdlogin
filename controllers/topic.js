@@ -12,11 +12,11 @@ const EventProxy = require('eventproxy');
  * @param  {Function} next
  */
 exports.index = function (req, res, next) {
-    var topic_id = req.params.tid;
-    var currentUser = req.session.user;
+    const topic_id = req.params.tid;
+    const currentUser = req.session.user;
 
-    var events = ['topic', 'other_topics', 'no_reply_topics', 'is_collect'];
-    var ep = EventProxy.create(events,
+    const events = ['topic', 'other_topics', 'no_reply_topics', 'is_collect'];
+    const ep = EventProxy.create(events,
         function (topic, other_topics, no_reply_topics, is_collect) {
             res.render('topic/index', {
                 topic: topic,
@@ -43,12 +43,12 @@ exports.index = function (req, res, next) {
 
         // 点赞数排名第三的回答，它的点赞数就是阈值
         topic.reply_up_threshold = (function () {
-            var allUpCount = replies.map(function (reply) {
+            const allUpCount = replies.map(function (reply) {
                 return reply.ups && reply.ups.length || 0;
             });
             allUpCount = _.sortBy(allUpCount, Number).reverse();
 
-            var threshold = allUpCount[2] || 0;
+            const threshold = allUpCount[2] || 0;
             if (threshold < 3) {
                 threshold = 3;
             }
@@ -58,8 +58,8 @@ exports.index = function (req, res, next) {
         ep.emit('topic', topic);
 
         // get other_topics
-        var options = { limit: 5, sort: '-last_reply_at' };
-        var query = { author_id: topic.author_id, _id: { '$nin': [topic._id] } };
+        const options = { limit: 5, sort: '-last_reply_at' };
+        const query = { author_id: topic.author_id, _id: { '$nin': [topic._id] } };
         Topic.getTopicsByQuery(query, options, ep.done('other_topics'));
 
         // get no_reply_topics
@@ -96,34 +96,6 @@ exports.put = function (req, res, next) {
     const content = validator.trim(req.body.content);
     const author_id = req.user._id;
 
-    // 得到所有的 tab, e.g. ['ask', 'share', ..]
-    //   const allTabs = config.tabs.map(function (tPair) {
-    //     return tPair[0];
-    //   });
-
-    // 验证
-    //   const editError;
-    //   if (title === '') {
-    //     editError = '标题不能是空的。';
-    //   } else if (title.length < 5 || title.length > 100) {
-    //     editError = '标题字数太多或太少。';
-    //   } else if (!tab || allTabs.indexOf(tab) === -1) {
-    //     editError = '必须选择一个版块。';
-    //   } else if (content === '') {
-    //     editError = '内容不可为空';
-    //   }
-    // END 验证
-
-    //   if (editError) {
-    //     res.status(422);
-    //     return res.render('topic/edit', {
-    //       edit_error: editError,
-    //       title: title,
-    //       content: content,
-    //       tabs: config.tabs
-    //     });
-    //   }
-
     Topic.newAndSave(title, content, req.user._id, function (err, topic) {
         if (err) {
             return next(err);
@@ -135,7 +107,7 @@ exports.put = function (req, res, next) {
             res.redirect('/topic/' + topic._id);
         });
         proxy.fail(next);
-        User.getUserById(req.session.user._id, proxy.done(function (user) {
+        User.getUserById(req.user._id, proxy.done(function (user) {
             user.score += 5;
             user.topic_count += 1;
             user.save();
@@ -143,16 +115,32 @@ exports.put = function (req, res, next) {
             proxy.emit('score_saved');
         }));
 
-        //发送at消息
-        at.sendMessageToMentionUsers(content, topic._id, req.session.user._id);
     });
 };
 
+exports.showTopic = function (req, res, next) {
+    const topic_id = req.params.tid;
+    
+    Promise.all([
+        Topic.getTopicById(topic_id)//获取文章信息
+    ])
+    .then(function (result) {
+        const topic = result[0];
+        if (!topic) {
+            throw new Error('改文章不存在');
+        }
+
+        res.render('topic/index', {
+            topic: topic
+        });
+    })
+    .catch(next);
+}
+
 exports.update = function (req, res, next) {
-    var topic_id = req.params.tid;
-    var title = req.body.title;
-    var tab = req.body.tab;
-    var content = req.body.t_content;
+    const topic_id = req.params.tid;
+    const title = req.body.title;
+    const content = req.body.content;
 
     Topic.getTopicById(topic_id, function (err, topic, tags) {
         if (!topic) {
@@ -165,27 +153,6 @@ exports.update = function (req, res, next) {
             tab = validator.trim(tab);
             content = validator.trim(content);
 
-            // 验证
-            var editError;
-            if (title === '') {
-                editError = '标题不能是空的。';
-            } else if (title.length < 5 || title.length > 100) {
-                editError = '标题字数太多或太少。';
-            } else if (!tab) {
-                editError = '必须选择一个版块。';
-            }
-            // END 验证
-
-            if (editError) {
-                return res.render('topic/edit', {
-                    action: 'edit',
-                    edit_error: editError,
-                    topic_id: topic._id,
-                    content: content,
-                    tabs: config.tabs
-                });
-            }
-
             //保存话题
             topic.title = title;
             topic.content = content;
@@ -196,8 +163,6 @@ exports.update = function (req, res, next) {
                 if (err) {
                     return next(err);
                 }
-                //发送at消息
-                at.sendMessageToMentionUsers(content, topic._id, req.session.user._id);
 
                 res.redirect('/topic/' + topic._id);
 

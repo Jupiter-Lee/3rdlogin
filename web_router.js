@@ -37,7 +37,7 @@ router.get('/topic/create',topic.create);
 // 保存新建的文章
 router.post('/topic/create', topic.put);
 // 显示某个话题
-router.get('/topic/:tid', topic.index);
+router.get('/topic/:tid', topic.showTopic);
 // 编辑某话题
 router.post('/topic/:tid/edit', topic.update);
 
