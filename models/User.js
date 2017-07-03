@@ -1,70 +1,47 @@
-const bcrypt = require('bcrypt-nodejs');
-const crypto = require('crypto');
-const mongoose = require('mongoose');
+var mongoose  = require('mongoose');
+var BaseModel = require("./base_model");
+var Schema    = mongoose.Schema;
 
-const userSchema = new mongoose.Schema({
-  email: { type: String, unique: true },
-  password: String,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
+var UserSchema = new Schema({
+  name: { type: String},
+  loginname: { type: String},
+  pass: { type: String },
+  email: { type: String},
+  url: { type: String },
+  profile_image_url: {type: String},
+  location: { type: String },
+  signature: { type: String },
+  profile: { type: String },
+  weibo: { type: String },
+  avatar: { type: String },
+  githubId: { type: String},
+  githubUsername: {type: String},
+  githubAccessToken: {type: String},
+  is_block: {type: Boolean, default: false},
 
-  facebook: String,
-  twitter: String,
-  google: String,
-  github: String,
-  instagram: String,
-  linkedin: String,
-  steam: String,
-  tokens: Array,
+  score: { type: Number, default: 0 },
+  topic_count: { type: Number, default: 0 },
+  reply_count: { type: Number, default: 0 },
+  follower_count: { type: Number, default: 0 },
+  following_count: { type: Number, default: 0 },
+  collect_tag_count: { type: Number, default: 0 },
+  collect_topic_count: { type: Number, default: 0 },
+  create_at: { type: Date, default: Date.now },
+  update_at: { type: Date, default: Date.now },
+  is_star: { type: Boolean },
+  level: { type: String },
+  active: { type: Boolean, default: false },
 
-  profile: {
-    name: String,
-    gender: String,
-    location: String,
-    website: String,
-    picture: String
-  }
-}, { timestamps: true });
+  receive_reply_mail: {type: Boolean, default: false },
+  receive_at_mail: { type: Boolean, default: false },
+  from_wp: { type: Boolean },
 
-/**
- * Password hash middleware.
- */
-userSchema.pre('save', function save(next) {
-  const user = this;
-  if (!user.isModified('password')) { return next(); }
-  bcrypt.genSalt(10, (err, salt) => {
-    if (err) { return next(err); }
-    bcrypt.hash(user.password, salt, null, (err, hash) => {
-      if (err) { return next(err); }
-      user.password = hash;
-      next();
-    });
-  });
+  retrieve_time: {type: Number},
+  retrieve_key: {type: String},
+
+  accessToken: {type: String},
 });
 
-/**
- * Helper method for validating user's password.
- */
-userSchema.methods.comparePassword = function comparePassword(candidatePassword, cb) {
-  bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
-    cb(err, isMatch);
-  });
-};
+UserSchema.plugin(BaseModel);
 
-/**
- * Helper method for getting user's gravatar.
- */
-userSchema.methods.gravatar = function gravatar(size) {
-  if (!size) {
-    size = 200;
-  }
-  if (!this.email) {
-    return `https://gravatar.com/avatar/?s=${size}&d=retro`;
-  }
-  const md5 = crypto.createHash('md5').update(this.email).digest('hex');
-  return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
-};
-
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+mongoose.model('User', UserSchema);

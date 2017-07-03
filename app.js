@@ -1,3 +1,5 @@
+// const config = require('./config');
+
 const express = require('express');
 const path = require('path');
 const favicon = require('serve-favicon');
@@ -12,23 +14,7 @@ const expressValidator = require('express-validator');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
 
-/**
- * 从.env.example文件当中载入环境诸如API和passwords等环境参数
- */
-dotenv.load({ path: '.env.example' });
-
-/**
- * Controllers (route handlers).
- */
-const homeController = require('./controllers/home');
-const userController = require('./controllers/user');
-const articleController = require('./controllers/article');
-
-/**
- * API keys and Passport configuration. 
- * API以及Passport配置
- */
-const passportConfig = require('./config/passport');
+const webRouter = require('./web_router');
 
 const app = express();
 
@@ -36,13 +22,13 @@ const app = express();
  * Connect to MongoDB.
  * 连接MongoDB
  */
-mongoose.Promise = global.Promise;
-mongoose.connect(process.env.MONGODB_URI || process.env.MONGOLAB_URI);
-mongoose.connection.on('error', (err) => {
-  console.error(err);
-  console.log('%s MongoDB connection error. Please make sure MongoDB is running.', chalk.red('✗'));
-  process.exit();
-});
+// mongoose.Promise = global.Promise;
+// mongoose.connect(process.env.MONGODB_URI || process.env.MONGOLAB_URI);
+// mongoose.connection.on('error', (err) => {
+//   console.error(err);
+//   console.log('%s MongoDB connection error. Please make sure MongoDB is running.', chalk.red('✗'));
+//   process.exit();
+// });
 
 // view engine setup
 app.set('port', process.env.PORT || 3030);
@@ -89,22 +75,7 @@ app.use((req, res, next) => {
 });
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 
-app.get('/', homeController.index);
-app.get('/login', userController.getLogin);
-app.post('/login', userController.postLogin);
-app.get('/logout', userController.logout);
-app.get('/signup', userController.getSignup);
-app.post('/signup', userController.postSignup);
-app.get('/post',articleController.index);
-app.post('/post',articleController.postArticle);
-app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
-app.post('/account/profile', passportConfig.isAuthenticated, userController.postUpdateProfile);
-app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
-
-app.get('/auth/github', passport.authenticate('github'));
-app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/login' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
-});
+app.use('/', webRouter);
 
 /**
  * Start Express server.

@@ -1,0 +1,15 @@
+extends ../layout
+
+block content
+  .page-header
+    h3 发表文章页
+  form.form-horizontal(action='/topic/<%= topic._id %>/edit', method='POST')
+    .form-group
+      .col-sm-7
+        input.form-control(type='title', name='title', id='title' value=topic.title)
+        textarea.form-control(type='content' name='content' id='content' value=topic.content)
+    .form-group
+      .col-sm-offset-3.col-sm-4
+        button.btn.btn.btn-primary(type='submit')
+          i.fa.fa-pencil
+          | 提交文章
